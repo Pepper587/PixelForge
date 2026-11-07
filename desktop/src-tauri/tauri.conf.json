@@ -14,8 +14,11 @@
     "windows": [
       {
         "title": "PixelForge",
-        "width": 800,
-        "height": 600
+        "width": 1180,
+        "height": 780,
+        "minWidth": 960,
+        "minHeight": 640,
+        "resizable": true
       }
     ],
     "security": {
