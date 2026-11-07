@@ -9,9 +9,13 @@ PixelForge is a Windows wallpaper utility designed to prepare any image for a di
 - Smart crop that fills the target display without distortion
 - Wallpaper library for manually selected images
 - Resolution-aware processing when display settings change
-- Optional online AI enhancement, only when explicitly requested
+- Optional local AI enhancement, with online enhancement only when explicitly requested
 - Manual multi-monitor setup with a different wallpaper per monitor
+- Video, GIF, web, and shader-based live wallpapers
+- Performance controls that pause live wallpapers during fullscreen apps or on battery
 - Windows desktop app and installer
+
+See the [roadmap](ROADMAP.md) and [community principles](COMMUNITY.md) for the project direction.
 
 ## Privacy direction
 
