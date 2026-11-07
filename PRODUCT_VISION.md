@@ -28,7 +28,18 @@ Users can import wallpapers from their computer or download them from elsewhere,
 - Users can rename imported wallpapers at any time
 
 ### 3. Community
+
 Users can browse, download, install, and freely use community wallpapers when the creator's license permits it.
+
+Community wallpapers support:
+
+- Star ratings or another simple quality rating
+- Comments and creator replies
+- Reporting and moderation tools
+- Creator attribution and download counts
+- A clear distinction between downloading a wallpaper and editing it
+
+A community wallpaper is read-only to other users. A user may download a permitted wallpaper, create an independent editable copy, and publish that copy as a new work with appropriate attribution when the original license allows it.
 
 Community packages should contain:
 
@@ -42,6 +53,19 @@ Community packages should contain:
 - Required dependencies
 
 Creators keep credit for their work. PixelForge should never silently remove attribution or misrepresent someone else's creation.
+
+## User profiles
+
+PixelForge should start with a local-first profile rather than requiring an email address.
+
+- On first launch, the user chooses a display name.
+- The user may choose a local profile picture.
+- The user can edit the name and picture later.
+- The profile shows the user's creations, imported items, editable projects, published wallpapers, ratings, and comments.
+- Users can reopen and edit their own projects at any time.
+- Downloading another creator's wallpaper creates a separate local copy; it does not grant permission to modify the original community item.
+
+Email is unnecessary for the local library and personal profile. Community browsing and downloading can work anonymously. Posting ratings, comments, or publishing work will eventually need an optional community identity for spam control and authorship. We should prefer optional sign-in methods such as GitHub, passkeys, or another privacy-respecting account method rather than forcing email collection. A user should never need an account to use local wallpapers.
 
 ## Universal optimization
 

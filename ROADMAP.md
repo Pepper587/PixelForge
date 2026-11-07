@@ -38,12 +38,16 @@ PixelForge will grow in small, verifiable releases. The app should remain free t
 - Import/export of portable PixelForge wallpaper packages
 - Preview, inspect, and validate community builds before installation
 
-## Phase 5 — Community
+## Phase 5 — Community and profiles
 
-- Community wallpaper gallery with clear creator attribution
-- Shareable wallpaper packages and setup profiles
-- Creator-selected licenses and usage permissions
-- Reporting, moderation, and safe-download guidance
+- Local-first user profile with display name and optional local avatar
+- Personal creation library with editable projects
+- Community wallpaper pages with ratings, comments, creator replies, and reports
+- Anonymous browsing and downloading
+- Optional identity for publishing, rating, and commenting to limit spam and preserve authorship
+- Downloaded community wallpapers remain read-only originals; editing creates a separate copy
+- Portable wallpaper packages and creator-selected licenses
+- Community gallery, moderation, and safe-download guidance
 - Optional donations and sponsorships; never required for core features
 
 ## Competitive direction
