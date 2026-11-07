@@ -1,21 +1,28 @@
 # PixelForge
 
-PixelForge is a Windows wallpaper utility designed to prepare any image for a display with intelligent cropping, resolution-aware processing, and optional image enhancement.
+PixelForge is a free wallpaper creation, optimization, playback, and community platform. Users can create wallpapers inside the app, import wallpapers from elsewhere, or browse and use community creations.
 
-> **Status:** Early project setup. The public repository currently contains the visual identity and project foundation; implementation will be added incrementally.
+> **Status:** Early project setup. The public repository currently contains the visual identity, product vision, and project foundation; implementation will be added incrementally.
+
+## Three ways to use PixelForge
+
+1. **Create** wallpapers with built-in editing and animation tools.
+2. **Import** images, videos, GIFs, web content, or other supported formats and optimize them for the user's display.
+3. **Community** — browse, download, share, and freely use wallpapers according to their creator's license.
 
 ## Planned capabilities
 
 - Smart crop that fills the target display without distortion
-- Wallpaper library for manually selected images
-- Resolution-aware processing when display settings change
+- Local wallpaper library with editable names and metadata
+- Display-aware processing for resolution, aspect ratio, DPI, and monitor layout
 - Optional local AI enhancement, with online enhancement only when explicitly requested
-- Manual multi-monitor setup with a different wallpaper per monitor
-- Video, GIF, web, and shader-based live wallpapers
+- Manual multi-monitor setups with different wallpapers per monitor
+- Video, GIF, web, shader, and audio-reactive live wallpapers
+- Mute, volume, and audio-reactive controls for live wallpapers
 - Performance controls that pause live wallpapers during fullscreen apps or on battery
-- Windows desktop app and installer
+- Windows first, followed by macOS and Linux-specific desktop adapters
 
-See the [roadmap](ROADMAP.md) and [community principles](COMMUNITY.md) for the project direction.
+See the [product vision](PRODUCT_VISION.md), [roadmap](ROADMAP.md), and [community principles](COMMUNITY.md) for the project direction.
 
 ## Privacy direction
 
