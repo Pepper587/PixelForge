@@ -44,4 +44,13 @@ dialog { width: 410px; max-width: calc(100vw - 32px); max-height: calc(100vh - 3
 .profile-edit-fields textarea { width: 100%; min-height: 68px; resize: vertical; margin-top: 7px; padding: 10px 11px; border: 1px solid #303852; border-radius: 7px; outline: none; color: #eff2fb; background: #171d31; font: inherit; font-size: 12px; }
 .profile-edit-fields textarea:focus { border-color: #8c7cff; }
 .profile-edit-fields input[type=file] { width: 100%; margin-top: 7px; color: #aab3ca; font-size: 11px; }
+.avatar-upload { margin-top: 8px; }
+.upload-dropzone { display: flex !important; align-items: center; gap: 11px; width: 100%; min-height: 62px; margin: 0 !important; padding: 10px 12px; border: 1px dashed #4a5881; border-radius: 10px; color: #b8c1da; background: #171d31; cursor: pointer; transition: .2s; }
+.upload-dropzone:hover { border-color: #9b87ff; background: #1c2440; }
+.upload-dropzone > span:nth-child(2) { flex: 1; }
+.upload-symbol { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 8px; color: #101522; font-size: 23px; background: linear-gradient(145deg,#74dfe4,#9a82ff); }
+.upload-dropzone strong, .upload-dropzone small { display: block; }
+.upload-dropzone strong { color: #e5e9f5; font-size: 11px; }
+.upload-dropzone small { margin-top: 3px; color: #7e89a8; font-size: 10px; }
+.upload-arrow { color: #98a5c5; font-size: 17px; }
 
