@@ -43,6 +43,7 @@ PixelForge will grow in small, verifiable releases. The app should remain free t
 - Local-first user profile with display name and optional local avatar
 - Personal creation library with editable projects
 - Community wallpaper pages with ratings, comments, creator replies, and reports
+- Follow/unfollow creators with follower and following counts
 - Anonymous browsing and downloading
 - Optional identity for publishing, rating, and commenting to limit spam and preserve authorship
 - Downloaded community wallpapers remain read-only originals; editing creates a separate copy

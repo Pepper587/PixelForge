@@ -35,6 +35,7 @@ Community wallpapers support:
 
 - Star ratings or another simple quality rating
 - Comments and creator replies
+- Follow/unfollow creators and show follower counts
 - Reporting and moderation tools
 - Creator attribution and download counts
 - A clear distinction between downloading a wallpaper and editing it
