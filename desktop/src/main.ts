@@ -30,20 +30,22 @@ type Display = {
   is_virtual: boolean;
 };
 
-type CommunityComment = { user: string; text: string; time: string; reply?: string };
+type PublishedNote = { user: string; text: string; time: string };
 
-type CommunityPost = {
+/**
+ * A wallpaper the user chose to publish.
+ *
+ * There is no community server yet, so these records live only in this
+ * browser's local storage. Every number rendered next to one of these is a
+ * real count of zero until a server exists to hold other people's ratings,
+ * comments and downloads. Nothing here is sample data.
+ */
+type PublishedWork = {
   id: string;
-  author: string;
-  handle: string;
+  wallpaperId: string;
   title: string;
-  accent: string;
-  rating: number;
-  ratings: number;
-  downloads: number;
-  comments: CommunityComment[];
-  liked: boolean;
-  followed: boolean;
+  publishedAt: number;
+  notes: PublishedNote[];
 };
 
 const profileKey = "pixelforge.profile";
@@ -66,58 +68,19 @@ let searchTerm = "";
 let applying = false;
 let toastTimer = 0;
 
-const communitySeed: CommunityPost[] = [
-  {
-    id: "c1",
-    author: "Aarav Mehta",
-    handle: "aaravmehta",
-    title: "Neon Drift — Cyberpunk Alley",
-    accent: "linear-gradient(135deg,#f857a6,#ff5858)",
-    rating: 4.8,
-    ratings: 214,
-    downloads: 1840,
-    liked: false,
-    followed: false,
-    comments: [
-      { user: "Riya K.", text: "The color grading on this is unreal.", time: "2h", reply: "Thank you! Spent a whole weekend on it." },
-      { user: "Dev S.", text: "Would love a 21:9 ultrawide crop of this.", time: "5h" },
-    ],
-  },
-  {
-    id: "c2",
-    author: "Lena Fischer",
-    handle: "lenafischer",
-    title: "Silent Peaks at Dawn",
-    accent: "linear-gradient(135deg,#43cea2,#185a9d)",
-    rating: 4.6,
-    ratings: 138,
-    downloads: 962,
-    liked: true,
-    followed: true,
-    comments: [{ user: "Kabir", text: "Perfect for a clean minimal setup.", time: "1d" }],
-  },
-  {
-    id: "c3",
-    author: "Marco Ruiz",
-    handle: "marcoruiz",
-    title: "Retro Grid Arcade",
-    accent: "linear-gradient(135deg,#f7971e,#ffd200)",
-    rating: 4.3,
-    ratings: 76,
-    downloads: 431,
-    liked: false,
-    followed: false,
-    comments: [],
-  },
-];
+const publishedKey = "pixelforge.published";
 
-let community: CommunityPost[] =
-  JSON.parse(localStorage.getItem("pixelforge.community") || "null") || communitySeed;
+let published: PublishedWork[] =
+  JSON.parse(localStorage.getItem(publishedKey) || "null") || [];
+
+// Older builds shipped a hardcoded set of invented community posts. Drop that
+// key so the fake creators, ratings and download counts never come back.
+localStorage.removeItem("pixelforge.community");
 
 function save() {
   localStorage.setItem(profileKey, JSON.stringify(profile));
   localStorage.setItem(libraryKey, JSON.stringify(library));
-  localStorage.setItem("pixelforge.community", JSON.stringify(community));
+  localStorage.setItem(publishedKey, JSON.stringify(published));
 }
 
 function esc(value: string) {
@@ -152,13 +115,6 @@ function ratioLabel(w: number, h: number) {
   if (ratio > 1.9) return "Ultrawide";
   if (ratio < 0.85) return "Portrait";
   return `${w} × ${h}`;
-}
-
-function stars(rating: number) {
-  const full = Math.floor(rating);
-  const half = rating - full >= 0.4;
-  const empty = 5 - full - (half ? 1 : 0);
-  return "★".repeat(full) + (half ? "★" : "") + "☆".repeat(Math.max(0, empty));
 }
 
 function currentDisplay(): Display {
@@ -359,6 +315,11 @@ function createViewMarkup(): string {
 }
 
 function communityViewMarkup(): string {
+  const display = currentDisplay();
+  const publishable = library.filter(
+    (item) => !published.some((work) => work.wallpaperId === item.id),
+  );
+
   return `
     <header class="topbar">
       <div>
@@ -367,59 +328,101 @@ function communityViewMarkup(): string {
         <p class="subheading">Free to use, with attribution to the creator.</p>
       </div>
       <div class="header-actions">
+        <span class="display-pill">▣ Target ${display.width} × ${display.height}</span>
         <button class="secondary" id="publish-button">↑ Publish your work</button>
       </div>
     </header>
-    <div class="community-grid">
-      ${community
-        .map(
-          (post) => `
-        <article class="community-card" data-post-id="${post.id}">
-          <div class="community-art" style="background:${post.accent}">
-            <div class="community-art-overlay">
-              <span class="badge badge-dark">${post.rating.toFixed(1)} ★</span>
-              <span class="badge badge-dark">${post.downloads.toLocaleString()} downloads</span>
-            </div>
-          </div>
-          <div class="community-body">
-            <div class="community-author">
-              <div class="avatar avatar-tiny">${esc(initials(post.author))}</div>
-              <div><strong>${esc(post.author)}</strong><span>@${esc(post.handle)}</span></div>
-              <button class="follow-btn ${post.followed ? "following" : ""}" data-follow-id="${post.id}">${post.followed ? "Following" : "Follow"}</button>
-            </div>
-            <h3>${esc(post.title)}</h3>
-            <div class="community-stats">
-              <span class="stars" title="${post.rating} from ${post.ratings} ratings">${stars(post.rating)}</span>
-              <span>${post.ratings} ratings</span>
-              <span>${post.comments.length} comments</span>
-            </div>
-            <div class="community-actions">
-              <button class="ghost-btn like-btn ${post.liked ? "liked" : ""}" data-like-id="${post.id}">${post.liked ? "♥" : "♡"} Like</button>
-              <button class="ghost-btn" data-download-id="${post.id}">↓ Use this wallpaper</button>
-            </div>
-            ${
-              post.comments.length
-                ? `<div class="comment-list">${post.comments
-                    .map(
-                      (comment) => `
-                      <div class="comment">
-                        <div class="comment-head"><strong>${esc(comment.user)}</strong><span>${esc(comment.time)}</span></div>
-                        <p>${esc(comment.text)}</p>
-                        ${comment.reply ? `<div class="comment-reply"><strong>${esc(post.author)}</strong><p>${esc(comment.reply)}</p></div>` : ""}
-                      </div>`,
-                    )
-                    .join("")}</div>`
-                : ""
-            }
-            <div class="comment-form">
-              <input id="comment-${post.id}" type="text" placeholder="Add a comment…" />
-              <button class="secondary" data-comment-id="${post.id}">Post</button>
-            </div>
-          </div>
-        </article>`,
-        )
-        .join("")}
-    </div>`;
+
+    <section class="offline-banner">
+      <div class="offline-icon">◌</div>
+      <div>
+        <strong>The community server isn't running yet.</strong>
+        <p>Browse, rate and download other people's wallpapers needs a backend. Until that ships, this tab shows only work published from this device — real files, real counts, no invented creators.</p>
+      </div>
+    </section>
+
+    <div class="section-label section-label-spaced">PUBLISHED FROM THIS DEVICE <span>${published.length}</span></div>
+    ${
+      published.length
+        ? `<div class="community-grid">${published.map(publishedCardMarkup).join("")}</div>`
+        : `<section class="empty-state"><div class="empty-icon">◉</div><h2>Nothing published yet</h2><p>Publish a wallpaper from your library and it will appear here, ready for the day the community server comes online.</p><button class="primary" id="publish-first">Publish your first wallpaper</button></section>`
+    }
+
+    ${
+      publishable.length
+        ? `<div class="section-label section-label-spaced">READY TO PUBLISH <span>${publishable.length}</span></div>
+           <div class="community-grid">${publishable.map(publishableCardMarkup).join("")}</div>`
+        : ""
+    }`;
+}
+
+function publishedCardMarkup(work: PublishedWork): string {
+  const item = library.find((entry) => entry.id === work.wallpaperId);
+  const author = profile.name.trim() || "You";
+  return `
+    <article class="community-card" data-post-id="${work.id}">
+      <div class="community-art" style="background-image:url('${item?.dataUrl ?? ""}')">
+        <div class="community-art-overlay">
+          <span class="badge badge-dark">Local only</span>
+          <span class="badge badge-dark">${work.notes.length} notes</span>
+        </div>
+      </div>
+      <div class="community-body">
+        <div class="community-author">
+          <div class="avatar avatar-tiny">${esc(initials(author))}</div>
+          <div><strong>${esc(author)}</strong><span>@${esc(handleFor(author))}</span></div>
+          <span class="local-pill">You</span>
+        </div>
+        <h3>${esc(work.title)}</h3>
+        <div class="community-stats">
+          <span>${item ? `${item.width} × ${item.height}` : "source file missing"}</span>
+          <span>0 ratings</span>
+          <span>0 downloads</span>
+        </div>
+        <div class="community-actions">
+          <button class="ghost-btn" data-use-id="${work.id}">↓ Use this wallpaper</button>
+          <button class="ghost-btn" data-unpublish-id="${work.id}">Unpublish</button>
+        </div>
+        ${
+          work.notes.length
+            ? `<div class="comment-list">${work.notes
+                .map(
+                  (note) => `
+          <div class="comment">
+            <div class="comment-head"><strong>${esc(note.user)}</strong><span>${esc(note.time)}</span></div>
+            <p>${esc(note.text)}</p>
+          </div>`,
+                )
+                .join("")}</div>`
+            : ""
+        }
+        <div class="comment-form">
+          <input id="note-${work.id}" type="text" placeholder="Leave a note about this wallpaper…" />
+          <button class="secondary" data-note-id="${work.id}">Post</button>
+        </div>
+      </div>
+    </article>`;
+}
+
+function publishableCardMarkup(item: Wallpaper): string {
+  return `
+    <article class="community-card">
+      <div class="community-art" style="background-image:url('${item.dataUrl}')">
+        <div class="community-art-overlay">
+          <span class="badge badge-dark">Not published</span>
+        </div>
+      </div>
+      <div class="community-body">
+        <h3>${esc(item.name)}</h3>
+        <div class="community-stats">
+          <span>${item.width} × ${item.height}</span>
+          <span>${ratioLabel(item.width, item.height)}</span>
+        </div>
+        <div class="community-actions">
+          <button class="ghost-btn primary-ghost" data-publish-id="${item.id}">↑ Publish this</button>
+        </div>
+      </div>
+    </article>`;
 }
 
 function profileViewMarkup(): string {
@@ -446,6 +449,11 @@ function profileViewMarkup(): string {
           <div><strong>${profile.followers || 0}</strong><span>Followers</span></div>
           <div><strong>${profile.following || 0}</strong><span>Following</span></div>
         </div>
+        ${
+          !(profile.followers || profile.following)
+            ? `<p class="profile-note">Follower counts activate once the community server is online. Everything you create stays local until then.</p>`
+            : ""
+        }
       </div>
     </section>
     <div class="section-label section-label-spaced">YOUR CREATIONS <span>${library.length}</span></div>
@@ -588,6 +596,31 @@ function bindEvents() {
   document.querySelector("#import-button")?.addEventListener("click", openImport);
   document.querySelector("#empty-import")?.addEventListener("click", openImport);
   document.querySelector("#create-from-import")?.addEventListener("click", openImport);
+  document.querySelector("#publish-first")?.addEventListener("click", () => {
+    activeView = "library";
+    render();
+    toast("Import a wallpaper first, then publish it from here.");
+  });
+  document.querySelector("#publish-button")?.addEventListener("click", () => {
+    const next = library.find((item) => !published.some((work) => work.wallpaperId === item.id));
+    if (!next) {
+      toast("Everything in your library is already published.", "error");
+      return;
+    }
+    published = [
+      {
+        id: crypto.randomUUID(),
+        wallpaperId: next.id,
+        title: next.name,
+        publishedAt: Date.now(),
+        notes: [],
+      },
+      ...published,
+    ];
+    save();
+    render();
+    toast(`"${next.name}" published locally. It will sync when the community server is live.`);
+  });
   document.querySelector("#profile-button")?.addEventListener("click", openProfile);
   document.querySelector("#profile-edit-button")?.addEventListener("click", openProfile);
   document.querySelector("#edit-profile")?.addEventListener("click", () =>
@@ -647,54 +680,66 @@ function bindEvents() {
     }),
   );
 
-  document.querySelectorAll<HTMLButtonElement>("[data-follow-id]").forEach((button) =>
+  document.querySelectorAll<HTMLButtonElement>("[data-publish-id]").forEach((button) =>
     button.addEventListener("click", () => {
-      const post = community.find((item) => item.id === button.dataset.followId);
-      if (!post) return;
-      post.followed = !post.followed;
-      profile.following = Math.max(0, (profile.following || 0) + (post.followed ? 1 : -1));
+      const item = library.find((entry) => entry.id === button.dataset.publishId);
+      if (!item) return;
+      published = [
+        {
+          id: crypto.randomUUID(),
+          wallpaperId: item.id,
+          title: item.name,
+          publishedAt: Date.now(),
+          notes: [],
+        },
+        ...published,
+      ];
       save();
       render();
+      toast(`"${item.name}" published locally. It will sync when the community server is live.`);
     }),
   );
 
-  document.querySelectorAll<HTMLButtonElement>("[data-like-id]").forEach((button) =>
+  document.querySelectorAll<HTMLButtonElement>("[data-unpublish-id]").forEach((button) =>
     button.addEventListener("click", () => {
-      const post = community.find((item) => item.id === button.dataset.likeId);
-      if (!post) return;
-      post.liked = !post.liked;
+      const work = published.find((entry) => entry.id === button.dataset.unpublishId);
+      if (!work) return;
+      published = published.filter((entry) => entry.id !== work.id);
       save();
       render();
+      toast(`"${work.title}" unpublished.`);
     }),
   );
 
-  document.querySelectorAll<HTMLButtonElement>("[data-download-id]").forEach((button) =>
+  document.querySelectorAll<HTMLButtonElement>("[data-use-id]").forEach((button) =>
     button.addEventListener("click", () => {
-      const post = community.find((item) => item.id === button.dataset.downloadId);
-      if (!post) return;
-      toast(`"${post.title}" queued for your library — the creator is credited automatically.`);
-    }),
-  );
-
-  document.querySelectorAll<HTMLButtonElement>("[data-comment-id]").forEach((button) =>
-    button.addEventListener("click", () => {
-      const id = button.dataset.commentId!;
-      const input = document.querySelector<HTMLInputElement>(`#comment-${id}`);
-      const text = input?.value.trim();
-      if (!text || !profile.name.trim()) {
-        toast("Set up your profile before commenting.", "error");
+      const work = published.find((entry) => entry.id === button.dataset.useId);
+      const item = work ? library.find((entry) => entry.id === work.wallpaperId) : null;
+      if (!item) {
+        toast("That wallpaper is no longer in your library.", "error");
         return;
       }
-      const post = community.find((item) => item.id === id);
-      if (!post) return;
-      post.comments.push({ user: profile.name, text, time: "now" });
+      selected = item;
       save();
       render();
+      activeView = "library";
+      render();
+      toast(`"${item.name}" is in your library. Set it as your wallpaper from the Library tab.`);
     }),
   );
 
-  document.querySelector("#publish-button")?.addEventListener("click", () =>
-    toast("Publishing connects to the community server in the next slice."),
+  document.querySelectorAll<HTMLButtonElement>("[data-note-id]").forEach((button) =>
+    button.addEventListener("click", () => {
+      const id = button.dataset.noteId!;
+      const input = document.querySelector<HTMLInputElement>(`#note-${id}`);
+      const text = input?.value.trim();
+      if (!text) return;
+      const work = published.find((entry) => entry.id === id);
+      if (!work) return;
+      work.notes.push({ user: profile.name.trim() || "You", text, time: "now" });
+      save();
+      render();
+    }),
   );
   document.querySelector("#create-export")?.addEventListener("click", () =>
     toast("The editor canvas lands in the next build slice."),
