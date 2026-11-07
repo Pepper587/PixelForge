@@ -1,13 +1,13 @@
 import "./styles.css";
 
-type Profile = { name: string; avatar?: string };
+type Profile = { name: string; avatar?: string; bio?: string };
 type Wallpaper = { id: string; name: string; sourceName: string; dataUrl: string; width: number; height: number; type: "image" };
 
 const profileKey = "pixelforge.profile";
 const libraryKey = "pixelforge.library";
 const app = document.querySelector<HTMLDivElement>("#app")!;
 const display = { width: window.screen.width, height: window.screen.height };
-let profile: Profile = JSON.parse(localStorage.getItem(profileKey) || "null") || { name: "", avatar: "" };
+let profile: Profile = JSON.parse(localStorage.getItem(profileKey) || "null") || { name: "", avatar: "", bio: "" };
 let library: Wallpaper[] = JSON.parse(localStorage.getItem(libraryKey) || "[]");
 let selected: Wallpaper | null = library[0] || null;
 let focalX = 50;
@@ -50,7 +50,7 @@ function render() {
       </main>
     </div>
     <input id="file-input" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden />
-    <dialog id="profile-dialog"><form method="dialog" class="dialog-card" id="profile-form"><div class="dialog-head"><div><p class="eyebrow">LOCAL PROFILE</p><h2>Your PixelForge profile</h2></div><button class="icon-button" value="cancel" aria-label="Close">×</button></div><p class="muted">No email is required. Your profile stays on this device for now.</p><label>Display name<input id="profile-name" required maxlength="40" value="${esc(profile.name)}" placeholder="What should we call you?" /></label><label>Profile picture <span class="optional">optional</span><input id="avatar-input" type="file" accept="image/png,image/jpeg,image/webp" /></label><div class="dialog-actions"><button value="cancel" class="secondary">Cancel</button><button value="default" class="primary">Save profile</button></div></form></dialog>
+    <dialog id="profile-dialog"><form method="dialog" class="dialog-card profile-dialog-card" id="profile-form"><div class="dialog-head"><div><p class="eyebrow">LOCAL PROFILE</p><h2>Your PixelForge profile</h2></div><button class="icon-button" value="cancel" aria-label="Close">×</button></div><div class="profile-hero"><div class="profile-avatar-large">${profile.avatar ? `<img src="${profile.avatar}" alt="" />` : (profile.name ? esc(profile.name[0].toUpperCase()) : "?")}</div><div class="profile-identity"><h3>${profile.name ? esc(profile.name) : "Your name"}</h3><p>@${profile.name ? esc(profile.name.toLowerCase().replace(/[^a-z0-9]+/g, "").slice(0, 20) || "creator") : "creator"}</p><div class="profile-stats"><span><strong>${library.length}</strong> creations</span><span><strong>0</strong> published</span><span><strong>0</strong> comments</span></div></div></div><p class="profile-bio">${esc(profile.bio || "Tell the PixelForge community a little about yourself.")}</p><div class="profile-actions"><button type="button" class="secondary" id="edit-profile">Edit profile</button><button type="button" class="secondary" id="view-archive">View archive</button></div><div class="profile-edit-fields"><p class="eyebrow">EDIT DETAILS</p><label>Display name<input id="profile-name" required maxlength="40" value="${esc(profile.name)}" placeholder="What should we call you?" /></label><label>Bio <span class="optional">optional</span><textarea id="profile-bio" maxlength="160" placeholder="A short introduction">${esc(profile.bio || "")}</textarea></label><label>Profile picture <span class="optional">optional · local only</span><input id="avatar-input" type="file" accept="image/png,image/jpeg,image/webp" /></label><div class="dialog-actions"><button value="cancel" class="secondary">Cancel</button><button value="default" class="primary">Save profile</button></div></div></form></dialog>
   `;
   bindEvents();
 }
@@ -71,6 +71,8 @@ function bindEvents() {
   document.querySelector("#import-button")?.addEventListener("click", openImport);
   document.querySelector("#empty-import")?.addEventListener("click", openImport);
   document.querySelector("#profile-button")?.addEventListener("click", openProfile);
+  document.querySelector("#edit-profile")?.addEventListener("click", () => document.querySelector(".profile-edit-fields")?.classList.toggle("visible"));
+  document.querySelector("#view-archive")?.addEventListener("click", () => document.querySelector<HTMLDialogElement>("#profile-dialog")?.close());
   document.querySelectorAll<HTMLButtonElement>(".nav-item").forEach((button) => button.addEventListener("click", () => {
     if (button.dataset.view !== "library") alert(`${button.textContent?.trim()} is coming after the library foundation is complete.`);
   }));
@@ -106,8 +108,9 @@ function importFile(event: Event) {
 function saveProfile(event: SubmitEvent) {
   event.preventDefault();
   const name = document.querySelector<HTMLInputElement>("#profile-name")?.value.trim() || "";
+  const bio = document.querySelector<HTMLTextAreaElement>("#profile-bio")?.value.trim() || "";
   const avatarInput = document.querySelector<HTMLInputElement>("#avatar-input");
-  const finish = (avatar?: string) => { profile = { name, avatar: avatar || profile.avatar }; save(); document.querySelector<HTMLDialogElement>("#profile-dialog")?.close(); render(); };
+  const finish = (avatar?: string) => { profile = { name, bio, avatar: avatar || profile.avatar }; save(); document.querySelector<HTMLDialogElement>("#profile-dialog")?.close(); render(); };
   const file = avatarInput?.files?.[0];
   if (!file) return finish();
   const reader = new FileReader(); reader.onload = () => finish(String(reader.result)); reader.readAsDataURL(file);
